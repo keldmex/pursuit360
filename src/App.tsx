@@ -2,9 +2,10 @@ import { useState } from 'react'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import QualityStandards from './pages/QualityStandards'
+import SolutionDesigner from './pages/SolutionDesigner'
 import type { SAUser } from './lib/users'
 
-type Page = 'dashboard' | 'quality-standards'
+type Page = 'dashboard' | 'quality-standards' | 'solution-designer'
 
 export default function App() {
   const [user, setUser] = useState<SAUser | null>(() => {
@@ -28,5 +29,6 @@ export default function App() {
 
   if (!user) return <Login onLogin={handleLogin} />
   if (page === 'quality-standards') return <QualityStandards user={user} onBack={() => setPage('dashboard')} />
+  if (page === 'solution-designer') return <SolutionDesigner user={user} onBack={() => setPage('dashboard')} />
   return <Dashboard user={user} onLogout={handleLogout} onNavigate={(p) => setPage(p as Page)} />
 }

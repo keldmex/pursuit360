@@ -109,7 +109,7 @@ export default function Dashboard({ user, onLogout, onNavigate }: { user: SAUser
           {[
             { title: 'Pursuit Pipeline', icon: '🎯', desc: 'Track active deals, stages, and TCV across your region.', route: null },
             { title: 'SOAR Workflow', icon: '📋', desc: 'Manage OA, BA and T&C SOAR approvals end-to-end.', route: null },
-            { title: 'Solution Designer', icon: '🏗️', desc: 'Build MPS solution architectures with fleet and software design.', route: null },
+            { title: 'Solution Designer', icon: '🏗️', desc: 'Build MPS solution architectures with fleet and software design.', route: 'solution-designer' },
             { title: 'Risk Log', icon: '⚠️', desc: 'Identify, quantify, and mitigate pursuit risks in real time.', route: null },
             { title: 'DART / Pricing', icon: '💹', desc: 'Connect to DART IPC Portal and track pricing strategy.', route: null },
             { title: 'Proposal Builder', icon: '📄', desc: 'Generate RFP responses, BA SOAR decks, and executive summaries.', route: null },
