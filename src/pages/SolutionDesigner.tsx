@@ -520,8 +520,8 @@ export default function SolutionDesigner({ user, onBack }: { user: SAUser; onBac
                     {/* Warnings */}
                     {r.warnings.length > 0 && (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                        {r.warnings.map((w,_i) => (
-                          <div key={i} style={{ background: 'rgba(217,119,6,0.1)', border: '1px solid rgba(217,119,6,0.25)', borderRadius: 8, padding: '8px 14px', fontSize: 13, color: 'rgba(255,255,255,0.8)' }}>
+                        {r.warnings.map((w, wi) => (
+                          <div key={wi} style={{ background: 'rgba(217,119,6,0.1)', border: '1px solid rgba(217,119,6,0.25)', borderRadius: 8, padding: '8px 14px', fontSize: 13, color: 'rgba(255,255,255,0.8)' }}>
                             {w}
                           </div>
                         ))}
