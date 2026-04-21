@@ -247,18 +247,13 @@ export const INDUSTRY_VERTICALS = [
 
 // ─── HELPER FUNCTIONS ────────────────────────────────────────────────────────
 
-export function getApprovalRequirements(tcv: number, gm: number) {
-  const results = APPROVAL_THRESHOLDS.filter(t => {
-    const tooSmall = tcv < t.tcv_min
-    const tooBig = t.tcv_max !== null && tcv > t.tcv_max
-    const gmTrigger = t.gm_below && gm >= (t.gm_threshold ?? 0)
-    if (tooSmall || tooBig || gmTrigger) return false
-    return true
-  })
-  return results[results.length - 1] ?? APPROVAL_THRESHOLDS[0]
+export function getApprovalRequirements(tcv: number, _gm: number) {
+  if (tcv >= 75_000_000) return APPROVAL_THRESHOLDS[2]
+  if (tcv >= 5_000_000) return APPROVAL_THRESHOLDS[1]
+  return APPROVAL_THRESHOLDS[0]
 }
 
-export function formatTCV(value: number, currency = 'USD'): string {
+export function formatTCV(value: number): string {
   if (value >= 1_000_000) return `$${(value / 1_000_000).toFixed(1)}M`
   if (value >= 1_000) return `$${(value / 1_000).toFixed(0)}K`
   return `$${value}`
