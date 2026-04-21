@@ -39,7 +39,7 @@ export default function Login({ onLogin }: { onLogin: (user: SAUser) => void }) 
         alignItems: 'center',
         gap: 12,
       }}>
-        <span style={{ fontSize: 28, fontWeight: 900, color: '#fff', letterSpacing: -1 }}>hp</span>
+        <img src="/hp-logo.svg" alt="HP" style={{ width: 36, height: 36 }} />
         <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: 20 }}>|</span>
         <span style={{ fontSize: 14, fontWeight: 600, color: 'rgba(255,255,255,0.9)', letterSpacing: 1 }}>
           PURSUIT<span style={{ color: '#fff' }}>360</span>

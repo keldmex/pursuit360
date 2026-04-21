@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <circle cx="50" cy="50" r="50" fill="#0096D6"/>
+  <!-- h letterform -->
+  <path d="M22 25 L22 75 L32 75 L32 53 Q32 46 40 46 Q48 46 48 53 L48 75 L58 75 L58 51 Q58 38 40 38 Q35 38 32 40 L32 25 Z" fill="white"/>
+  <!-- p letterform -->
+  <path d="M62 38 L62 85 L72 85 L72 72 Q75 75 80 75 Q92 75 92 57 Q92 38 80 38 Q75 38 72 41 L72 38 Z M72 57 Q72 47 80 47 Q88 47 88 57 Q88 67 80 67 Q72 67 72 57 Z" fill="white"/>
+</svg>

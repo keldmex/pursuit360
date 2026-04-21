@@ -18,7 +18,7 @@ export default function Dashboard({ user, onLogout, onNavigate }: { user: SAUser
         justifyContent: 'space-between',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <span style={{ fontSize: 28, fontWeight: 900, letterSpacing: -1 }}>hp</span>
+          <img src="/hp-logo.svg" alt="HP" style={{ width: 36, height: 36 }} />
           <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: 20 }}>|</span>
           <span style={{ fontSize: 14, fontWeight: 600, letterSpacing: 1 }}>PURSUIT360</span>
         </div>

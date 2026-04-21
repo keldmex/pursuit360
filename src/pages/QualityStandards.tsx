@@ -95,6 +95,8 @@ export default function QualityStandards({ user, onBack }: { user: SAUser; onBac
             ← Dashboard
           </button>
           <span style={{ color: 'rgba(255,255,255,0.4)' }}>|</span>
+          <img src="/hp-logo.svg" alt="HP" style={{ width: 32, height: 32 }} />
+          <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: 18 }}>|</span>
           <span style={{ fontSize: 14, fontWeight: 600, letterSpacing: 1 }}>PURSUIT360</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
