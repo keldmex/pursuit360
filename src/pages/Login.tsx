@@ -150,43 +150,7 @@ export default function Login({ onLogin }: { onLogin: (user: SAUser) => void }) 
             </button>
           </form>
 
-          {/* Demo hint */}
-          <div style={{
-            marginTop: 28,
-            padding: '14px 16px',
-            background: 'rgba(0,150,214,0.08)',
-            border: '1px solid rgba(0,150,214,0.2)',
-            borderRadius: 8,
-          }}>
-            <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, fontWeight: 600, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 1 }}>Demo accounts</p>
-            {[
-              { name: 'Sarah Chen', email: 'sarah.chen@hp-pursuit360.demo', level: 'Senior SA · APAC' },
-              { name: 'Marco De Luca', email: 'marco.deluca@hp-pursuit360.demo', level: 'Lead SA · EMEA' },
-              { name: 'Priya Sharma', email: 'priya.sharma@hp-pursuit360.demo', level: 'SA · EMEA' },
-              { name: 'James Okonkwo', email: 'james.okonkwo@hp-pursuit360.demo', level: 'Principal SA · Americas' },
-            ].map(u => (
-              <button
-                key={u.email}
-                type="button"
-                onClick={() => { setEmail(u.email); setPassword('Demo-SA-2026') }}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  width: '100%',
-                  background: 'transparent',
-                  border: 'none',
-                  padding: '5px 0',
-                  cursor: 'pointer',
-                  textAlign: 'left',
-                }}
-              >
-                <span style={{ color: '#fff', fontSize: 13, fontWeight: 500 }}>{u.name}</span>
-                <span style={{ color: 'rgba(255,255,255,0.35)', fontSize: 11 }}>{u.level}</span>
-              </button>
-            ))}
-            <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: 11, marginTop: 8 }}>Password: Demo-SA-2026</p>
-          </div>
+
         </div>
       </div>
     </div>
