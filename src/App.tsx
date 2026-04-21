@@ -28,5 +28,5 @@ export default function App() {
 
   if (!user) return <Login onLogin={handleLogin} />
   if (page === 'quality-standards') return <QualityStandards user={user} onBack={() => setPage('dashboard')} />
-  return <Dashboard user={user} onLogout={handleLogout} onNavigate={setPage} />
+  return <Dashboard user={user} onLogout={handleLogout} onNavigate={(p) => setPage(p as Page)} />
 }
