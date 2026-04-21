@@ -1,7 +1,10 @@
 import { useState } from 'react'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
+import QualityStandards from './pages/QualityStandards'
 import type { SAUser } from './lib/users'
+
+type Page = 'dashboard' | 'quality-standards'
 
 export default function App() {
   const [user, setUser] = useState<SAUser | null>(() => {
@@ -10,6 +13,7 @@ export default function App() {
       return stored ? JSON.parse(stored) : null
     } catch { return null }
   })
+  const [page, setPage] = useState<Page>('dashboard')
 
   const handleLogin = (u: SAUser) => {
     sessionStorage.setItem('p360_user', JSON.stringify(u))
@@ -19,8 +23,10 @@ export default function App() {
   const handleLogout = () => {
     sessionStorage.removeItem('p360_user')
     setUser(null)
+    setPage('dashboard')
   }
 
   if (!user) return <Login onLogin={handleLogin} />
-  return <Dashboard user={user} onLogout={handleLogout} />
+  if (page === 'quality-standards') return <QualityStandards user={user} onBack={() => setPage('dashboard')} />
+  return <Dashboard user={user} onLogout={handleLogout} onNavigate={setPage} />
 }

@@ -1,6 +1,6 @@
 import type { SAUser } from '../lib/users'
 
-export default function Dashboard({ user, onLogout }: { user: SAUser; onLogout: () => void }) {
+export default function Dashboard({ user, onLogout, onNavigate }: { user: SAUser; onLogout: () => void; onNavigate: (page: string) => void }) {
   return (
     <div style={{
       minHeight: '100vh',
@@ -107,34 +107,32 @@ export default function Dashboard({ user, onLogout }: { user: SAUser; onLogout: 
         </h2>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 16 }}>
           {[
-            { title: 'Pursuit Pipeline', icon: '🎯', desc: 'Track active deals, stages, and TCV across your region.', status: 'soon' },
-            { title: 'SOAR Workflow', icon: '📋', desc: 'Manage OA, BA and T&C SOAR approvals end-to-end.', status: 'soon' },
-            { title: 'Solution Designer', icon: '🏗️', desc: 'Build MPS solution architectures with fleet and software design.', status: 'soon' },
-            { title: 'Risk Log', icon: '⚠️', desc: 'Identify, quantify, and mitigate pursuit risks in real time.', status: 'soon' },
-            { title: 'DART / Pricing', icon: '💹', desc: 'Connect to DART IPC Portal and track pricing strategy.', status: 'soon' },
-            { title: 'Proposal Builder', icon: '📄', desc: 'Generate RFP responses, BA SOAR decks, and executive summaries.', status: 'soon' },
+            { title: 'Pursuit Pipeline', icon: '🎯', desc: 'Track active deals, stages, and TCV across your region.', route: null },
+            { title: 'SOAR Workflow', icon: '📋', desc: 'Manage OA, BA and T&C SOAR approvals end-to-end.', route: null },
+            { title: 'Solution Designer', icon: '🏗️', desc: 'Build MPS solution architectures with fleet and software design.', route: null },
+            { title: 'Risk Log', icon: '⚠️', desc: 'Identify, quantify, and mitigate pursuit risks in real time.', route: null },
+            { title: 'DART / Pricing', icon: '💹', desc: 'Connect to DART IPC Portal and track pricing strategy.', route: null },
+            { title: 'Proposal Builder', icon: '📄', desc: 'Generate RFP responses, BA SOAR decks, and executive summaries.', route: null },
+            { title: 'Quality Standards', icon: '✅', desc: 'SA quality bar, best practices, and self-assessment checklist.', route: 'quality-standards' },
           ].map(mod => (
-            <div key={mod.title} style={{
-              background: 'rgba(255,255,255,0.03)',
-              border: '1px solid rgba(255,255,255,0.07)',
-              borderRadius: 12,
-              padding: '22px 22px',
-              cursor: 'default',
-              transition: 'border-color 0.2s',
-            }}>
+            <div key={mod.title}
+              onClick={() => mod.route && onNavigate(mod.route)}
+              style={{
+                background: mod.route ? 'rgba(0,150,214,0.06)' : 'rgba(255,255,255,0.03)',
+                border: mod.route ? '1px solid rgba(0,150,214,0.25)' : '1px solid rgba(255,255,255,0.07)',
+                borderRadius: 12,
+                padding: '22px 22px',
+                cursor: mod.route ? 'pointer' : 'default',
+                transition: 'border-color 0.2s, background 0.2s',
+              }}
+            >
               <div style={{ fontSize: 28, marginBottom: 12 }}>{mod.icon}</div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
                 <h3 style={{ fontSize: 15, fontWeight: 700, margin: 0 }}>{mod.title}</h3>
-                <span style={{
-                  fontSize: 10,
-                  fontWeight: 700,
-                  background: 'rgba(0,150,214,0.15)',
-                  color: '#0096D6',
-                  borderRadius: 999,
-                  padding: '2px 8px',
-                  textTransform: 'uppercase',
-                  letterSpacing: 1,
-                }}>Soon</span>
+                {mod.route
+                  ? <span style={{ fontSize: 10, fontWeight: 700, background: 'rgba(0,150,214,0.2)', color: '#0096D6', borderRadius: 999, padding: '2px 8px', textTransform: 'uppercase', letterSpacing: 1 }}>Open →</span>
+                  : <span style={{ fontSize: 10, fontWeight: 700, background: 'rgba(0,150,214,0.1)', color: '#0096D6', borderRadius: 999, padding: '2px 8px', textTransform: 'uppercase', letterSpacing: 1 }}>Soon</span>
+                }
               </div>
               <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 13, margin: 0, lineHeight: 1.5 }}>{mod.desc}</p>
             </div>
