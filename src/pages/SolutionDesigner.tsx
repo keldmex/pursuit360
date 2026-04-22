@@ -1,9 +1,10 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import type { SAUser } from '../lib/users'
 import { COUNTRIES } from '../data/countries'
 import { MPS_SERVICES } from '../data/pursuit'
 import { getPreferredCINC, getDeliveryRiskLevel } from '../data/cinc'
 import { getEntitiesByCountry } from '../data/hp-entities'
+import { findHPRecommendation, type HPRecommendation } from '../lib/supabase-devices'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -119,6 +120,8 @@ export default function SolutionDesigner({ user, onBack }: { user: SAUser; onBac
 
   // Step 2: Fleet
   const [fleet, setFleet] = useState<FleetLine[]>([])
+  const [hpRecs, setHpRecs] = useState<Record<string, HPRecommendation | null | 'loading'>>({})
+  const lookupTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({})
 
   // Step 3: Feasibility results
   const [results, setResults] = useState<FeasibilityResult[]>([])
@@ -152,8 +155,37 @@ export default function SolutionDesigner({ user, onBack }: { user: SAUser; onBac
   }
 
   const updateFleet = (id: string, field: keyof FleetLine, value: string | number) => {
-    setFleet(prev => prev.map(f => f.id === id ? { ...f, [field]: value } : f))
+    setFleet(prev => {
+      const next = prev.map(f => f.id === id ? { ...f, [field]: value } : f)
+      // Trigger HP recommendation lookup when brand/model/format change
+      if (field === 'brand' || field === 'model' || field === 'format') {
+        const line = next.find(f => f.id === id)
+        if (line && line.model.trim().length >= 3) {
+          // Debounce lookup by 700ms
+          if (lookupTimers.current[id]) clearTimeout(lookupTimers.current[id])
+          setHpRecs(r => ({ ...r, [id]: 'loading' }))
+          lookupTimers.current[id] = setTimeout(() => {
+            findHPRecommendation(line.brand, line.model, line.format)
+              .then(rec => setHpRecs(r => ({ ...r, [id]: rec })))
+              .catch(() => setHpRecs(r => ({ ...r, [id]: null })))
+          }, 700)
+        }
+      }
+      return next
+    })
   }
+
+  // Clear recommendations for removed fleet lines
+  const removeFleetLineWithCleanup = (id: string) => {
+    if (lookupTimers.current[id]) clearTimeout(lookupTimers.current[id])
+    setHpRecs(r => { const n = { ...r }; delete n[id]; return n })
+    removeFleetLine(id)
+  }
+
+  // Cleanup timers on unmount
+  useEffect(() => {
+    return () => { Object.values(lookupTimers.current).forEach(t => clearTimeout(t)) }
+  }, [])
 
   const addFleetLine = (iso = '') => setFleet(prev => [...prev, { id: uid(), country_iso: iso, brand: '', model: '', quantity: 1, device_type: 'MFP', format: 'A3', notes: '' }])
   const removeFleetLine = (id: string) => setFleet(prev => prev.filter(f => f.id !== id))
@@ -354,31 +386,116 @@ export default function SolutionDesigner({ user, onBack }: { user: SAUser; onBac
                 ))}
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {fleet.map(f => (
-                  <div key={f.id} style={{ display: 'grid', gridTemplateColumns: '1.2fr 1.2fr 1.5fr 0.6fr 0.8fr 0.8fr auto', gap: 8, alignItems: 'center' }}>
-                    <select style={S.input} value={f.country_iso} onChange={e => updateFleet(f.id,'country_iso',e.target.value)}>
-                      <option value="">— Country —</option>
-                      {countries.filter(c=>c.iso).map(c => <option key={c.iso} value={c.iso}>{c.country_name} ({c.iso})</option>)}
-                    </select>
-                    <input style={S.input} value={f.brand} onChange={e => updateFleet(f.id,'brand',e.target.value)} placeholder="e.g. Ricoh" list="brand-list" />
-                    <datalist id="brand-list">
-                      {['Ricoh','Konica Minolta','Xerox','Canon','Kyocera','Sharp','Lexmark','Brother','Samsung','HP'].map(b => <option key={b} value={b}/>)}
-                    </datalist>
-                    <input style={S.input} value={f.model} onChange={e => updateFleet(f.id,'model',e.target.value)} placeholder="e.g. IM C3000" />
-                    <input style={S.input} type="number" min={1} value={f.quantity} onChange={e => updateFleet(f.id,'quantity',parseInt(e.target.value)||1)} />
-                    <select style={S.input} value={f.device_type} onChange={e => updateFleet(f.id,'device_type',e.target.value)}>
-                      <option value="MFP">MFP</option>
-                      <option value="SFP">SFP</option>
-                      <option value="Printer">Printer</option>
-                    </select>
-                    <select style={S.input} value={f.format} onChange={e => updateFleet(f.id,'format',e.target.value)}>
-                      <option value="A3">A3</option>
-                      <option value="A4">A4</option>
-                    </select>
-                    <button onClick={() => removeFleetLine(f.id)} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', cursor: 'pointer', fontSize: 18, padding: '0 4px' }}>×</button>
-                  </div>
-                ))}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                {fleet.map(f => {
+                  const rec = hpRecs[f.id]
+                  return (
+                    <div key={f.id}>
+                      {/* Fleet input row */}
+                      <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1.2fr 1.5fr 0.6fr 0.8fr 0.8fr auto', gap: 8, alignItems: 'center' }}>
+                        <select style={S.input} value={f.country_iso} onChange={e => updateFleet(f.id,'country_iso',e.target.value)}>
+                          <option value="">— Country —</option>
+                          {countries.filter(c=>c.iso).map(c => <option key={c.iso} value={c.iso}>{c.country_name} ({c.iso})</option>)}
+                        </select>
+                        <input style={S.input} value={f.brand} onChange={e => updateFleet(f.id,'brand',e.target.value)} placeholder="e.g. Ricoh" list="brand-list" />
+                        <datalist id="brand-list">
+                          {['Ricoh','Konica Minolta','Xerox','Canon','Kyocera','Sharp','Lexmark','Brother','Samsung','HP'].map(b => <option key={b} value={b}/>)}
+                        </datalist>
+                        <input style={S.input} value={f.model} onChange={e => updateFleet(f.id,'model',e.target.value)} placeholder="e.g. IM C3000" />
+                        <input style={S.input} type="number" min={1} value={f.quantity} onChange={e => updateFleet(f.id,'quantity',parseInt(e.target.value)||1)} />
+                        <select style={S.input} value={f.device_type} onChange={e => updateFleet(f.id,'device_type',e.target.value)}>
+                          <option value="MFP">MFP</option>
+                          <option value="SFP">SFP</option>
+                          <option value="Printer">Printer</option>
+                        </select>
+                        <select style={S.input} value={f.format} onChange={e => updateFleet(f.id,'format',e.target.value)}>
+                          <option value="A3">A3</option>
+                          <option value="A4">A4</option>
+                        </select>
+                        <button onClick={() => removeFleetLineWithCleanup(f.id)} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', cursor: 'pointer', fontSize: 18, padding: '0 4px' }}>×</button>
+                      </div>
+
+                      {/* HP Recommendation Panel */}
+                      {rec === 'loading' && f.model.trim().length >= 3 && (
+                        <div style={{
+                          marginTop: 6, padding: '8px 14px', borderRadius: 8,
+                          background: 'rgba(0,150,214,0.06)', border: '1px solid rgba(0,150,214,0.15)',
+                          display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: 'rgba(255,255,255,0.4)',
+                        }}>
+                          <span style={{ animation: 'spin 1s linear infinite', display: 'inline-block' }}>⟳</span>
+                          Looking up HP equivalent…
+                        </div>
+                      )}
+
+                      {rec && rec !== 'loading' && (
+                        <div style={{
+                          marginTop: 6, padding: '10px 14px', borderRadius: 8,
+                          background: 'rgba(0,150,214,0.08)', border: '1px solid rgba(0,150,214,0.25)',
+                          display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap',
+                        }}>
+                          {/* HP logo indicator */}
+                          <span style={{ fontSize: 11, fontWeight: 800, color: '#0096D6', letterSpacing: 1, whiteSpace: 'nowrap' }}>HP MATCH →</span>
+
+                          {/* Model name */}
+                          <span style={{ fontSize: 13, fontWeight: 700, color: '#fff' }}>{rec.hp_full_name}</span>
+
+                          {/* Format badge */}
+                          <span style={{
+                            fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 4,
+                            background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.6)',
+                          }}>{rec.format}</span>
+
+                          {/* Colour badge */}
+                          <span style={{
+                            fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 4,
+                            background: rec.colour_capability === 'Colour' ? 'rgba(99,102,241,0.2)' : 'rgba(255,255,255,0.06)',
+                            color: rec.colour_capability === 'Colour' ? '#818CF8' : 'rgba(255,255,255,0.5)',
+                          }}>{rec.colour_capability}</span>
+
+                          {/* Speed comparison */}
+                          {rec.speed_ppm !== null && (
+                            <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', whiteSpace: 'nowrap' }}>
+                              {rec.speed_ppm} ppm
+                              {rec.speed_delta !== null && (
+                                <span style={{
+                                  marginLeft: 4, fontSize: 11, fontWeight: 700,
+                                  color: rec.speed_delta >= 0 ? '#22c55e' : '#D97706',
+                                }}>
+                                  ({rec.speed_delta >= 0 ? '+' : ''}{rec.speed_delta} vs {rec.competitor_speed} ppm)
+                                </span>
+                              )}
+                            </span>
+                          )}
+
+                          {/* Volume tier */}
+                          {rec.volume_tier && (
+                            <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)' }}>{rec.volume_tier} volume</span>
+                          )}
+
+                          {/* Confidence badge */}
+                          <span style={{
+                            marginLeft: 'auto', fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 10,
+                            background: rec.data_confidence === 'Verified' ? 'rgba(34,197,94,0.15)' : 'rgba(234,179,8,0.15)',
+                            color: rec.data_confidence === 'Verified' ? '#22c55e' : '#CA8A04',
+                            whiteSpace: 'nowrap',
+                          }}>
+                            {rec.data_confidence === 'Verified' ? '🟢' : '🟡'} {rec.data_confidence}
+                          </span>
+                        </div>
+                      )}
+
+                      {rec === null && f.brand.trim() && f.model.trim().length >= 3 && (
+                        <div style={{
+                          marginTop: 6, padding: '8px 14px', borderRadius: 8,
+                          background: 'rgba(217,119,6,0.06)', border: '1px solid rgba(217,119,6,0.2)',
+                          fontSize: 12, color: 'rgba(255,255,255,0.4)',
+                        }}>
+                          ⚠️ No HP equivalent found in database for this format/colour combination
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
               </div>
 
               <div style={{ display: 'flex', gap: 10, marginTop: 14 }}>
